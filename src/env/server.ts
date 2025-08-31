@@ -1,6 +1,8 @@
 import 'server-only';
 import { z } from 'zod';
 
+const LogLevelEnum = z.enum(['silent', 'error', 'warn', 'info', 'debug']);
+
 const ServerEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
@@ -19,6 +21,7 @@ const ServerEnvSchema = z.object({
     .default(
       'https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies'
     ),
+  LOG_LEVEL: LogLevelEnum.default('info'),
 });
 
 const parsed = ServerEnvSchema.safeParse(process.env);
