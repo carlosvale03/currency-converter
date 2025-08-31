@@ -1,4 +1,5 @@
 import type { Currency } from '@/core/money';
+import { env } from '@/env/server'; // <- NEW
 
 type ProviderId = 'frankfurter' | 'open-er-api' | 'currency-api';
 
@@ -26,7 +27,7 @@ async function withTimeout<T>(
 }
 
 async function frankfurter(from: Currency, to: Currency, signal?: AbortSignal) {
-  const base = process.env.FRANKFURTER_BASE ?? 'https://api.frankfurter.dev/v1';
+  const base = env.FRANKFURTER_BASE; // <- usando env validado
   const url = `${base}/latest?base=${from}&symbols=${to}`;
   const res = await fetch(url, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`Frankfurter HTTP ${res.status}`);
@@ -37,7 +38,7 @@ async function frankfurter(from: Currency, to: Currency, signal?: AbortSignal) {
 }
 
 async function openErApi(from: Currency, to: Currency, signal?: AbortSignal) {
-  const base = process.env.OPEN_ER_API_BASE ?? 'https://open.er-api.com/v6';
+  const base = env.OPEN_ER_API_BASE; // <- usando env validado
   const url = `${base}/latest/${from}`;
   const res = await fetch(url, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`Open ER-API HTTP ${res.status}`);
@@ -48,9 +49,7 @@ async function openErApi(from: Currency, to: Currency, signal?: AbortSignal) {
 }
 
 async function currencyApiCdn(from: Currency, to: Currency, signal?: AbortSignal) {
-  const base =
-    process.env.CURRENCY_API_CDN_BASE ??
-    'https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies';
+  const base = env.CURRENCY_API_CDN_BASE; // <- usando env validado
   const url = `${base}/${from.toLowerCase()}/${to.toLowerCase()}.json`;
   const res = await fetch(url, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`Currency-API CDN HTTP ${res.status}`);
@@ -65,29 +64,22 @@ export async function getRateWithFallback(
   from: Currency,
   to: Currency,
   timeoutMs = 3000
-): Promise<FallbackResult> {
+) {
   const chain: Array<{
     id: ProviderId;
     run: (signal: AbortSignal) => Promise<number>;
     attributionUrl?: string;
   }> = [
-    {
-      id: 'currency-api',
-      run: (signal) => currencyApiCdn(from, to, signal),
-    },
-    {
-      id: 'frankfurter',
-      run: (signal) => frankfurter(from, to, signal),
-    },
+    { id: 'frankfurter', run: (signal) => frankfurter(from, to, signal) },
     {
       id: 'open-er-api',
       run: (signal) => openErApi(from, to, signal),
-      attributionUrl: 'https://www.exchangerate-api.com', // exige atribuição
+      attributionUrl: 'https://www.exchangerate-api.com',
     },
+    { id: 'currency-api', run: (signal) => currencyApiCdn(from, to, signal) },
   ];
 
   let lastErr: unknown = null;
-
   for (const p of chain) {
     try {
       const value = await withTimeout(p.run, timeoutMs);
