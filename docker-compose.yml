@@ -1,0 +1,22 @@
+version: "3.9"
+services: 
+  web:
+    container_name: currency-converter
+    build:
+      context: . #if your Dockerfile is not at the same level change the path here (./frontend)
+      target: dev
+    restart: always
+    command: yarn dev
+    environment:
+      - NODE_ENV=development 
+      - NEXT_PUBLIC_RATE_API_BASE=${NEXT_PUBLIC_RATE_API_BASE:-https://api.exchangerate.host}
+      - TURBOPACK="false"
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING="true"
+      - CHOKIDAR_INTERVAL="300"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - 3000:3000

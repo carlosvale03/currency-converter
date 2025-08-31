@@ -1,103 +1,135 @@
-import Image from "next/image";
+'use client';
+
+import { useMemo, useState } from 'react';
+import AmountInput from '@/components/AmountInput';
+import CurrencySelect from '@/components/CurrencySelect';
+import SwapButton from '@/components/SwapButton';
+import ResultPanel from '@/components/ResultPanel';
+import ErrorBanner from '@/components/ErrorBanner';
+import { convert } from '@/core/convert';
+import type { Currency } from '@/core/money';
+import { StaticRateProvider } from '@/providers/static';
+import { HttpRateProvider } from '@/providers/http';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [amount, setAmount] = useState('100');
+  const [from, setFrom] = useState<Currency>('USD');
+  const [to, setTo] = useState<Currency>('BRL');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [details, setDetails] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [useDynamic, setUseDynamic] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const canConvert = useMemo(() => {
+    if (amount.trim() === '') return false;
+    if (Number.isNaN(Number(amount))) return false;
+    if (Number(amount) < 0) return false;
+    return true;
+  }, [amount]);
+
+  async function doConvert() {
+    setError('');
+    setLoading(true);
+    setResult(null);
+    setDetails(null);
+    const controller = new AbortController();
+
+    try {
+      const rate = useDynamic
+        ? await HttpRateProvider.getRate(from, to, controller.signal)
+        : StaticRateProvider.getRate(from, to);
+
+      const value = convert(amount, rate);
+      const nf = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: to });
+
+      setResult(`${nf.format(Number(value))}`);
+      setDetails(
+        `Taxa usada: 1 ${from} = ${Number(rate.value).toFixed(6)} ${to} ` +
+        (useDynamic ? '(API)' : '(estática)')
+      );
+    } catch {
+      // fallback para estático se a API falhar
+      try {
+        const rate = StaticRateProvider.getRate(from, to);
+        const value = convert(amount, rate);
+        const nf = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: to });
+        setResult(`${nf.format(Number(value))}`);
+        setDetails(
+          `Taxa (fallback estático): 1 ${from} = ${Number(rate.value).toFixed(6)} ${to}`
+        );
+        setError('Não foi possível obter taxa dinâmica. Usando tabela fixa.');
+      } catch {
+        setError('Erro ao converter. Verifique o valor e tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function swap() {
+    setFrom(to);
+    setTo(from);
+    setResult(null);
+    setDetails(null);
+  }
+
+  return (
+    <main className="min-h-screen bg-white text-gray-900">
+      <div className="max-w-2xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-2">Conversor de Moedas</h1>
+        <p className="text-sm text-gray-600 mb-6">
+          Suporta USD, EUR e BRL. Você pode alternar entre taxa dinâmica (API) e tabela fixa. 
+        </p>
+
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+          <AmountInput amount={amount} onChange={setAmount} />
+          <div className="flex justify-center mb-2">
+            <SwapButton onClick={swap} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <CurrencySelect label="De" value={from} onChange={setFrom} />
+            <CurrencySelect label="Para" value={to} onChange={setTo} />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="flex items-center gap-3 mt-4">
+          <button
+            className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50"
+            onClick={doConvert}
+            disabled={!canConvert || loading}
+          >
+            Converter
+          </button>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={useDynamic}
+              onChange={(e) => setUseDynamic(e.target.checked)}
+            />
+            Usar taxa dinâmica (API)
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <ErrorBanner message={error} />
+        </div>
+
+        <div className="mt-3">
+          <ResultPanel loading={loading} resultText={result} details={details} />
+        </div>
+
+        <hr className="my-6" />
+        <section className="text-sm text-gray-600 space-y-1">
+          <div>
+            <strong>Moedas:</strong> USD, EUR, BRL
+          </div>
+          <div>
+            <strong>Como funciona:</strong> Tentamos taxa dinâmica via API; se falhar, caímos no estático.
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

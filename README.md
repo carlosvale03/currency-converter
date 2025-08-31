@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💱 Conversor de Moedas — Next.js + TypeScript + Tailwind
 
-## Getting Started
+Aplicação simples para converter valores entre **USD**, **EUR** e **BRL**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Funcionalidades
+
+- Conversão entre **USD/EUR/BRL**
+- **Provider pattern** de taxas:
+  - **HTTP** (dinâmico) via API configurável
+  - **Estático** (fallback) quando a API falhar
+- Precisão financeira com arredondamento bancário
+- Validações de entrada e mensagens de erro
+- Acessibilidade: labels, `aria-live`, foco visível
+- Pronto para rodar em **Docker** (produção) ou localmente (`npm run dev`)
+
+---
+
+## 🧱 Stack
+
+- **Next.js 15** + **TypeScript**
+- **Tailwind CSS**
+- **decimal.js** (cálculos monetários precisos)
+- Vitest + Testing Library (Opcional para testes)
+
+---
+
+## 🗂️ Arquitetura
+````bash
+    src/
+        app/
+            page.tsx           # tela do conversor (App Router)
+            globals.css
+        core/
+            money.ts           # tipos de moeda e helpers
+            convert.ts         # função pura de conversão (usa decimal.js)
+        providers/
+            static.ts          # taxas estáticas (fallback)
+            http.ts            # busca taxa em API externa
+        components/
+            AmountInput.tsx
+            CurrencySelect.tsx
+            SwapButton.tsx
+            ResultPanel.tsx
+            ErrorBanner.tsx
+    tests/
+        convert.spec.ts      # exemplo de teste unitário (opcional)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Decisões de arquitetura** (resumo):
+- **Provider pattern**: alterna entre `HttpRateProvider` e `StaticRateProvider` com a mesma interface.
+- **Precisão**: toda conta monetária usa `decimal.js`; arredondamento `ROUND_HALF_EVEN`.
+- **Fallback resiliente**: erro na API ⇒ usa tabela fixa e informa no UI.
+- **UI desacoplada**: componentes pequenos e reusáveis.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔧 Rodando localmente (dev)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Pré-requisitos: Node 18+ e npm.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# 1) instalar deps
+npm install
 
-## Deploy on Vercel
+# 2) opcional: configurar a URL da API de câmbio
+cp .env.example .env.local
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 3) rodar em dev
+npm run dev
+# abra http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Rodando com Docker (produção)
+
+Pensado para o avaliador subir em 1 comando.
+
+```bash
+# build & run
+docker compose -f docker-compose.prod.yml up --build
+
+# acesse
+# http://localhost:3000
+```
+
+Arquivos relevantes:
+
+- Dockerfile: build em múltiplas fases → standalone do Next.
+- docker-compose.prod.yml:
+    - expõe porta 3000
+    - permite definir `NEXT_PUBLIC_RATE_API_BASE` via env/compose
+
+> Observação: o compose de dev via Docker foi deixado fora por questões de hot-reload no Windows. Para desenvolvimento diário, use npm run dev fora do Docker.
+
