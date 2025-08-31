@@ -11,6 +11,8 @@ import type { Currency } from '@/core/money';
 import { StaticRateProvider } from '@/providers/static';
 import { HttpRateProvider } from '@/providers/http';
 
+import type { RateWithMeta } from '@/providers/types';
+
 export default function Home() {
   const [amount, setAmount] = useState('100');
   const [from, setFrom] = useState<Currency>('USD');
@@ -20,6 +22,7 @@ export default function Home() {
   const [details, setDetails] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [useDynamic, setUseDynamic] = useState(true);
+  const [attributionUrl, setAttributionUrl] = useState<string | null>(null);
 
   const canConvert = useMemo(() => {
     if (amount.trim() === '') return false;
@@ -36,20 +39,34 @@ export default function Home() {
     const controller = new AbortController();
 
     try {
-      const rate = useDynamic
-        ? await HttpRateProvider.getRate(from, to, controller.signal)
-        : StaticRateProvider.getRate(from, to);
+      let rate: RateWithMeta;
+      if (useDynamic) {
+        rate = await HttpRateProvider.getRate(from, to, controller.signal);
+      } else {
+        rate = StaticRateProvider.getRate(from, to);
+      }
 
       const value = convert(amount, rate);
-      const nf = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: to });
+      const nf = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: to,
+      });
 
       setResult(`${nf.format(Number(value))}`);
+
+      const providerNote = rate.provider ? ` • Fonte: ${rate.provider}` : '';
       setDetails(
         `Taxa usada: 1 ${from} = ${Number(rate.value).toFixed(6)} ${to} ` +
-        (useDynamic ? '(API)' : '(estática)')
+        (useDynamic ? '(API)' : '(estática)') +
+        providerNote
+      );
+
+      setAttributionUrl(
+        rate.provider === 'open-er-api'
+          ? rate.attributionUrl ?? 'https://www.exchangerate-api.com'
+          : null
       );
     } catch {
-      // fallback para estático se a API falhar
       try {
         const rate = StaticRateProvider.getRate(from, to);
         const value = convert(amount, rate);
@@ -59,13 +76,16 @@ export default function Home() {
           `Taxa (fallback estático): 1 ${from} = ${Number(rate.value).toFixed(6)} ${to}`
         );
         setError('Não foi possível obter taxa dinâmica. Usando tabela fixa.');
+        setAttributionUrl(null);
       } catch {
         setError('Erro ao converter. Verifique o valor e tente novamente.');
+        setAttributionUrl(null);
       }
     } finally {
       setLoading(false);
     }
   }
+
 
   function swap() {
     setFrom(to);
@@ -119,6 +139,15 @@ export default function Home() {
         <div className="mt-3">
           <ResultPanel loading={loading} resultText={result} details={details} />
         </div>
+
+        {attributionUrl && (
+          <p className="text-xs text-gray-500 mt-2">
+            <a href={attributionUrl} target="_blank" rel="noreferrer">
+              Rates By Exchange Rate API
+            </a>
+          </p>
+        )}
+
 
         <hr className="my-6" />
         <section className="text-sm text-gray-600 space-y-1">
