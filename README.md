@@ -27,7 +27,7 @@ Aplicação simples para converter valores entre **USD**, **EUR** e **BRL**.
 ---
 
 ## 🗂️ Arquitetura
-````bash
+```bash
     src/
         app/
             page.tsx           # tela do conversor (App Router)
