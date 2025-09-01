@@ -7,9 +7,10 @@ type Props = {
   error?: string;
   hint?: string;
   maxLength?: number;
+  hintClassName?: string;
 };
 
-export default function AmountInput({ amount, onChange, error, hint, maxLength }: Props) {
+export default function AmountInput({ amount, onChange, error, hint, maxLength, hintClassName }: Props) {
   const id = useId();
   const helpId = `${id}-help`;
   const base = 
@@ -37,7 +38,7 @@ const cls = error
       {error ? (
         <span id={helpId} className="text-xs text-red-600">{error}</span>
       ) : (
-        <span id={helpId} className="text-xs text-gray-500">
+        <span id={helpId} className={`text-xs text-[var(--text-secondary)] ${hintClassName ?? ''}`}>
           {hint ?? 'Use ponto para decimais. Ex.: 1234.56'}
         </span>
       )}

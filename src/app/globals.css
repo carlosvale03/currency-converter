@@ -40,9 +40,6 @@ html, body { background: var(--background-primary); color: var(--text-primary); 
   outline-offset: 2px;
 }
 
-a { color: var(--link); }
-a:hover { color: var(--link-hover); }
-
 
 /* Skeleton shimmer */
 .skeleton {
@@ -77,4 +74,44 @@ a:hover { color: var(--link-hover); }
 }
 .skip-link:focus {
   top: 8px;
+}
+
+/* Container e seções */
+.container {
+  max-width: 72rem; /* ~1152px */
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+.section {
+  padding-block: 3.5rem; /* 56px */
+}
+.section-sm {
+  padding-block: 2rem;
+}
+
+/* Cards temáticos */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.06);
+}
+
+/* Gradiente de herói + grid sutil */
+.bg-hero {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(0,60,95,0.12), transparent 70%),
+    radial-gradient(800px 400px at 90% 10%, rgba(17,94,134,0.10), transparent 70%),
+    var(--background-primary);
+  position: relative;
+}
+.bg-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0,0,0,.04) 1px, transparent 1px) 0 0/24px 24px,
+    linear-gradient(to bottom, rgba(0,0,0,.04) 1px, transparent 1px) 0 0/24px 24px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.15), transparent 65%);
+  pointer-events: none;
 }
