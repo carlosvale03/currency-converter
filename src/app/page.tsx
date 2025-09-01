@@ -164,6 +164,7 @@ export default function Home() {
                 <a href="#converter" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Converter</a>
                 <a href="#features" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Diferenciais</a>
                 <a href="#sources" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Fontes</a>
+                <a href="#currencies" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Moedas</a>
                 <a href="#faq" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">FAQ</a>
               </div>
             </nav>
@@ -173,8 +174,9 @@ export default function Home() {
                 Conversão de moedas simples, precisa e resiliente.
               </h1>
               <p className="text-[var(--text-secondary)] mt-3 max-w-2xl">
-                USD, EUR e BRL com taxa dinâmica de múltiplos provedores, fallback automático
-                e arredondamento bancário para resultados confiáveis.
+                USD, EUR, BRL, GBP, JPY, CAD, AUD, CHF e também BTC, ETH e USDT — taxa dinâmica
+                de múltiplas fontes (intraday e diário) com fallback automático e arredondamento
+                bancário para resultados confiáveis.
               </p>
               <div className="mt-6">
                 <a
@@ -324,12 +326,13 @@ export default function Home() {
                 <div className="card p-5">
                   <h3 className="text-base font-semibold mb-2">Como funciona</h3>
                   <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-2">
-                    <li>Busca taxa em <strong>3 APIs gratuitas</strong> (Frankfurter → Open ER-API → Currency-API).</li>
-                    <li>Se houver falha, usa <strong>tabela estática</strong> e informa via toast.</li>
-                    <li>Precisão com <strong>decimal.js</strong> e arredondamento bancário.</li>
+                    <li>Ordem de busca: <strong>Yahoo (intraday)</strong> → <strong>Frankfurter (diário)</strong> → <strong>Open ER-API</strong> → <strong>Currency-API (CDN)</strong>.</li>
+                    <li>Criptomoedas (BTC, ETH, USDT) sem chave, via <strong>Currency-API</strong> (e gráfico via Yahoo quando disponível).</li>
+                    <li>Se tudo falhar, usamos <strong>tabela estática</strong> e informamos via toast.</li>
+                    <li>Precisão com <strong>decimal.js</strong> e <strong>ROUND_HALF_EVEN</strong>.</li>
                   </ul>
                   <div className="mt-3 text-xs text-[var(--text-secondary)]">
-                    Dica: você pode alternar entre taxa dinâmica e estática para testar os estados.
+                    Observação: fontes diárias mostram apenas <em>dias úteis</em>; intraday cobre o intervalo completo.
                   </div>
                 </div>
               </div>
@@ -368,24 +371,64 @@ export default function Home() {
             <div className="container">
               <h2 className="text-xl sm:text-2xl font-semibold mb-2">Fontes de câmbio</h2>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
-                A aplicação tentará sempre a melhor fonte disponível no momento.
+                A aplicação escolhe a melhor fonte disponível. Para FIAT↔FIAT, priorizamos intraday (quando há),
+                depois diário. Para pares com cripto, usamos Currency-API sem chave.
               </p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="card p-4">
-                  <div className="text-sm font-medium">Frankfurter</div>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">Principal</p>
+                  <div className="text-sm font-medium">Yahoo Finance</div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Intraday (vários pontos por dia), sem chave.</p>
+                </div>
+                <div className="card p-4">
+                  <div className="text-sm font-medium">Frankfurter (ECB)</div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Diário (dias úteis), estável e confiável.</p>
                 </div>
                 <div className="card p-4">
                   <div className="text-sm font-medium">Open ER-API</div>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">Fallback 1</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Fallback FIAT, sem chave.</p>
                 </div>
                 <div className="card p-4">
                   <div className="text-sm font-medium">Currency-API (CDN)</div>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">Fallback 2</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">FIAT + CRYPTO sem chave; também usado como fallback final.</p>
                 </div>
               </div>
             </div>
           </section>
+
+
+          {/* MOEDAS SUPORTADAS */}
+          <section id="currencies" className="section bg-[var(--background-secondary)]">
+            <div className="container">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Moedas suportadas</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                Principais moedas fiat e criptos populares. Criptomoedas aparecem como “· CRYPTO” no seletor.
+              </p>
+
+              <div className="mb-3 text-sm font-medium">FIAT</div>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {['USD','EUR','BRL','GBP','JPY','CAD','AUD','CHF'].map(c => (
+                  <span key={c} className="px-2 py-1 rounded-full border border-[color:var(--border)] bg-[var(--surface)] text-xs">
+                    {c}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mb-3 text-sm font-medium">CRYPTO</div>
+              <div className="flex flex-wrap gap-2">
+                {['BTC','ETH','USDT'].map(c => (
+                  <span key={c} className="px-2 py-1 rounded-full border border-[color:var(--border)] bg-[var(--surface)] text-xs">
+                    {c} <span className="opacity-70">· CRYPTO</span>
+                  </span>
+                ))}
+              </div>
+
+              <p className="text-xs text-[var(--text-secondary)] mt-4">
+                Notas: valores de cripto no <em>fallback estático</em> são apenas estimativas. Prefira a taxa dinâmica sempre que possível.
+              </p>
+            </div>
+          </section>
+
+
 
           {/* FAQ */}
           <section id="faq" className="section bg-[var(--background-secondary)]">
@@ -395,18 +438,30 @@ export default function Home() {
                 <details className="card p-4">
                   <summary className="font-medium cursor-pointer">O que acontece se a API cair?</summary>
                   <p className="text-sm text-[var(--text-secondary)] mt-2">
-                    A aplicação usa fallback para taxas estáticas e informa via toast “Tentar novamente”.
+                    A aplicação tenta em cascata: <strong>Yahoo</strong> → <strong>Frankfurter</strong> → <strong>Open ER-API</strong> → <strong>Currency-API</strong>.
+                    Se ainda assim falhar, usa a <strong>tabela estática</strong> e mostra um toast com opção de tentar novamente.
                   </p>
                 </details>
+
                 <details className="card p-4">
-                  <summary className="font-medium cursor-pointer">Quais moedas são suportadas?</summary>
+                  <summary className="font-medium cursor-pointer">Por que às vezes não aparecem 7 pontos no gráfico?</summary>
                   <p className="text-sm text-[var(--text-secondary)] mt-2">
-                    USD, EUR e BRL (requisito do teste). É simples adicionar outras.
+                    O <strong>Frankfurter</strong> é diário e cobre apenas <em>dias úteis</em>. Já o <strong>Yahoo</strong> retorna dados intraday
+                    (vários pontos por dia). A aplicação escolhe a melhor fonte disponível.
+                  </p>
+                </details>
+
+                <details className="card p-4">
+                  <summary className="font-medium cursor-pointer">Vocês suportam criptomoedas?</summary>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2">
+                    Sim. BTC, ETH e USDT. Na taxa dinâmica usamos a <strong>Currency-API (CDN)</strong> sem chave; o gráfico utiliza
+                    o <strong>Yahoo</strong> quando há símbolo disponível. No fallback estático, os valores de cripto são aproximados.
                   </p>
                 </details>
               </div>
             </div>
           </section>
+
 
           {/* RODAPÉ */}
           <footer className="section-sm">
