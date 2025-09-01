@@ -1,60 +1,40 @@
-FROM node:18-alpine AS base
+# ---- base ----
+FROM node:20-alpine AS base
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
+# ---- deps: instala TODAS as deps (inclui dev) ----
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
-FROM base AS dev
-
-WORKDIR /app
+# ---- build: gera artefatos standalone ----
+FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# build em modo prod (sem telemetria)
+ENV NODE_ENV=production
+RUN npm run build
 
-
-
-# Rebuild the source code only when needed
-FROM base AS builder
+# ---- runner: imagem final, só com o necessário p/ rodar ----
+FROM node:20-alpine AS runner
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+# usuário não-root
+RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
-RUN yarn build
-
-# If using npm comment out above and use below instead
-# RUN npm run build
-
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
-
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# copia somente o que precisa no runtime
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 
 USER nextjs
+EXPOSE 3000
 
+# healthcheck simples (usa busybox/wget do Alpine)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ || exit 1
 
 CMD ["node", "server.js"]
