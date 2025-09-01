@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSeriesWithFallback } from '@/server/rates/timeseries';
-import type { Currency } from '@/core/money';
+import { ALL_CURRENCIES, type Currency } from '@/core/money';
 
-const SUPPORTED = new Set<Currency>(['USD', 'EUR', 'BRL']);
+const SUPPORTED = new Set<Currency>(ALL_CURRENCIES);
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

@@ -1,20 +1,22 @@
+'use client';
+
 import type { Currency } from '@/core/money';
-import type { RateWithMeta } from './types';
+
+export type RateWithMeta = {
+  value: number;
+  provider: 'frankfurter' | 'open-er-api' | 'currency-api';
+  attributionUrl?: string | null;
+};
 
 export const HttpRateProvider = {
   async getRate(from: Currency, to: Currency, signal?: AbortSignal): Promise<RateWithMeta> {
-    const res = await fetch(`/api/rate?from=${from}&to=${to}`, {
-      signal,
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return {
-      from,
-      to,
-      value: String(data.rate),
-      provider: data.provider ?? undefined,
-      attributionUrl: data.attributionUrl ?? null,
-    };
+    const url = `/api/rate?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+    const res = await fetch(url, { signal, cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`rate http ${res.status}`);
+    }
+    const json = (await res.json()) as RateWithMeta;
+    if (!Number.isFinite(json.value)) throw new Error('rate invalid');
+    return json;
   },
 };

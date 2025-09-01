@@ -49,6 +49,16 @@ async function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>, ms = 4000
 }
 
 function yahooSymbol(from: Currency, to: Currency): { symbol: string; invert: boolean } {
+  const CRYPTO = new Set<Currency>(['BTC', 'ETH', 'USDT']);
+
+  // Caso envolva cripto: usamos padrão "CRYPTO-FIAT"
+  if (CRYPTO.has(from) || CRYPTO.has(to)) {
+    const crypto = CRYPTO.has(from) ? from : to;
+    const fiat = CRYPTO.has(from) ? to : from;
+    return { symbol: `${crypto}-${fiat}`, invert: CRYPTO.has(to) }; // invert quando TO é cripto
+  }
+
+  // Forex tradicional
   const map: Record<string, { symbol: string; invert: boolean }> = {
     'USD->BRL': { symbol: 'USDBRL=X', invert: false },
     'BRL->USD': { symbol: 'USDBRL=X', invert: true },
@@ -56,8 +66,25 @@ function yahooSymbol(from: Currency, to: Currency): { symbol: string; invert: bo
     'BRL->EUR': { symbol: 'EURBRL=X', invert: true },
     'EUR->USD': { symbol: 'EURUSD=X', invert: false },
     'USD->EUR': { symbol: 'EURUSD=X', invert: true },
+
+    'USD->GBP': { symbol: 'USDGBP=X', invert: false }, // Yahoo aceita várias formas; fallback genérico abaixo cobre
+    'GBP->USD': { symbol: 'USDGBP=X', invert: true },
+    'USD->JPY': { symbol: 'USDJPY=X', invert: false },
+    'JPY->USD': { symbol: 'USDJPY=X', invert: true },
+    'USD->CAD': { symbol: 'USDCAD=X', invert: false },
+    'CAD->USD': { symbol: 'USDCAD=X', invert: true },
+    'USD->AUD': { symbol: 'USDAUD=X', invert: false },
+    'AUD->USD': { symbol: 'USDAUD=X', invert: true },
+    'USD->CHF': { symbol: 'USDCHF=X', invert: false },
+    'CHF->USD': { symbol: 'USDCHF=X', invert: true },
+    'EUR->GBP': { symbol: 'EURGBP=X', invert: false },
+    'GBP->EUR': { symbol: 'EURGBP=X', invert: true },
   };
-  return map[`${from}->${to}`] ?? { symbol: `${from}${to}=X`, invert: false };
+  const key = `${from}->${to}`;
+  if (map[key]) return map[key];
+
+  // fallback genérico para pares forex
+  return { symbol: `${from}${to}=X`, invert: false };
 }
 
 /** Série intraday do Yahoo (sem chave) */
