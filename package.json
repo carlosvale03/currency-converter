@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest"
+    "test": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "ci:verify": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "decimal.js": "^10.6.0",
