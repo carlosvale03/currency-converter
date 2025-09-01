@@ -149,14 +149,14 @@ export default function Home() {
 
   return (
     <ClientErrorBoundary>
-      <main className="min-h-screen bg-white text-gray-900">
+      <main className="min-h-screen bg-[var(--background-primary)] text-[var(--text-primary)]">
         <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-2">Conversor de Moedas</h1>
-          <p className="text-sm text-gray-600 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Conversor de Moedas</h1>
+          <p className="text-sm text-[var(--text-secondary)] mb-6">
             Suporta USD, EUR e BRL. Você pode alternar entre taxa dinâmica (API) e tabela fixa. 
           </p>
 
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+          <div className="grid gap-3 items-end grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
             <AmountInput
               amount={amount}
               onChange={handleAmountChange}
@@ -175,11 +175,23 @@ export default function Home() {
 
           <div className="flex items-center gap-3 mt-4">
             <button
-              className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50"
+              className="h-11 px-5 rounded-lg bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] 
+              hover:bg-[var(--button-primary-hover)] disabled:opacity-50 focus-visible:ring-2 
+              focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 cursor-pointer"
               onClick={() => { void doConvert(); }}
               disabled={!canConvert || loading}
             >
-              Converter
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className="h-4 w-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin"
+                    aria-hidden="true"
+                  />
+                  Convertendo
+                </span>
+              ) : (
+                'Converter'
+              )}
             </button>
 
             <label className="flex items-center gap-2 text-sm">
@@ -202,7 +214,10 @@ export default function Home() {
 
           {attributionUrl && (
             <p className="text-xs text-gray-500 mt-2">
-              <a href={attributionUrl} target="_blank" rel="noreferrer">
+              <a 
+                href={attributionUrl} 
+                target="_blank" rel="noreferrer" 
+                className="underline text-[var(--link)] hover:text-[var(--link-hover)]" >
                 Rates By Exchange Rate API
               </a>
             </p>

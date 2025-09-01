@@ -16,7 +16,9 @@ export default function CurrencySelect({ label, value, onChange }: Props) {
       <label htmlFor={id} className="text-sm font-medium">{label}</label>
       <select
         id={id}
-        className="border rounded-lg px-3 py-2 outline-none focus:ring ring-offset-1"
+        className="border rounded-lg h-11 px-3 text-base sm:text-lg outline-none 
+          border-[color:var(--border)] text-[var(--text-primary)] 
+          focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
         value={value}
         onChange={(e) => onChange(e.target.value as Currency)}
       >
