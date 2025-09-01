@@ -18,6 +18,8 @@ import { logger } from '@/lib/logger';
 
 import { useToast } from '@/components/ToastProvider';
 
+import FeatureCard from '@/components/FeatureCard';
+
 
 import {
   normalizeAmountInput,
@@ -149,92 +151,258 @@ export default function Home() {
 
   return (
     <ClientErrorBoundary>
-      <main id="content" role="main" className="min-h-screen bg-[var(--background-primary)] text-[var(--text-primary)]">
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Conversor de Moedas</h1>
-          <p className="text-sm text-[var(--text-secondary)] mb-6">
-            Suporta USD, EUR e BRL. Você pode alternar entre taxa dinâmica (API) e tabela fixa. 
-          </p>
+      <>
+        {/* HERO */}
+        <header className="bg-hero bg-grid">
+          <div className="container section-sm">
+            <nav className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-[var(--button-primary-bg)]" />
+                <span className="font-semibold">Currency Converter</span>
+              </div>
+              <div className="hidden sm:flex gap-5 text-sm">
+                <a href="#converter" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Converter</a>
+                <a href="#features" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Diferenciais</a>
+                <a href="#sources" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">Fontes</a>
+                <a href="#faq" className="underline text-[var(--link)] hover:text-[var(--link-hover)]">FAQ</a>
+              </div>
+            </nav>
 
-          <div className="grid gap-3 items-end grid-cols-1 md:grid-cols-[1fr_auto_1fr] order-1">
-            <AmountInput
-              amount={amount}
-              onChange={handleAmountChange}
-              error={amountError}
-              hint={`Máximo ${MAX_INT_DIGITS} dígitos inteiros e ${MAX_DEC_DIGITS} decimais`}
-              maxLength={MAX_INPUT_LENGTH}
-            />
-            <div className="flex justify-center mb-2 order-2">
-              <SwapButton onClick={swap} />
+            <div className="py-10 sm:py-14">
+              <h1 className="text-3xl sm:text-4xl font-bold max-w-2xl">
+                Conversão de moedas simples, precisa e resiliente.
+              </h1>
+              <p className="text-[var(--text-secondary)] mt-3 max-w-2xl">
+                USD, EUR e BRL com taxa dinâmica de múltiplos provedores, fallback automático
+                e arredondamento bancário para resultados confiáveis.
+              </p>
+              <div className="mt-6">
+                <a
+                  href="#converter"
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-lg bg-[var(--button-primary-bg)] 
+                  text-[var(--button-primary-text)] hover:bg-[var(--button-primary-hover)] focus-visible:ring-2 
+                  focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
+                >
+                  Começar agora →
+                </a>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 order-3">
-              <CurrencySelect label="De" value={from} onChange={setFrom} />
-              <CurrencySelect label="Para" value={to} onChange={setTo} />
-            </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-3 mt-4">
-            <button
-              className="h-11 px-5 rounded-lg bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] 
-              hover:bg-[var(--button-primary-hover)] disabled:opacity-50 focus-visible:ring-2 
-              focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 cursor-pointer"
-              onClick={() => { void doConvert(); }}
-              disabled={!canConvert || loading}
-            >
-              {loading ? (
-                <span className="inline-flex items-center gap-2">
-                  <span
-                    className="h-4 w-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Convertendo
-                </span>
-              ) : (
-                'Converter'
-              )}
-            </button>
+        {/* MAIN */}
+        <main id="content" role="main" className="bg-[var(--background-primary)] text-[var(--text-primary)]">
+          {/* CONVERSOR */}
+          <section id="converter" className="section">
+            <div className="container">
+              <div className="grid gap-6 md:grid-cols-2 items-start">
+                <div className="card p-5">
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-2">Conversor</h2>
+                  <p className="text-sm text-[var(--text-secondary)] mb-4">
+                    Informe o valor, escolha as moedas e clique em converter.
+                  </p>
 
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={useDynamic}
-                onChange={(e) => setUseDynamic(e.target.checked)}
-              />
-              Usar taxa dinâmica (API)
-            </label>
-          </div>
+                  {/* GRID dos campos (Valor | Swap | De | Para) */}
+                  <div
+                    className="
+                      grid gap-x-3 gap-y-2 items-end
+                      grid-cols-1
+                      md:grid-cols-[2fr_auto_1fr_1fr]
+                      md:grid-rows-[auto_auto]
+                      md:[&>*]:min-w-0
+                    "
+                  >
+                    {/* Valor (mais largo) */}
+                    <div>
+                      <AmountInput
+                        amount={amount}
+                        onChange={handleAmountChange}
+                        error={amountError}
+                        hint={`Máximo ${MAX_INT_DIGITS} dígitos inteiros e ${MAX_DEC_DIGITS} decimais`}
+                        maxLength={MAX_INPUT_LENGTH}
+                        hintClassName="md:hidden"
+                      />
+                    </div>
 
-          <div className="mt-4">
-            <ErrorBanner message={error} />
-          </div>
+                    {/* Swap (estreito, alinhado à base) */}
+                    <div className="flex justify-center self-end">
+                      <SwapButton onClick={swap} />
+                    </div>
 
-          <div className="mt-3">
-            <ResultPanel loading={loading} resultText={result} details={details} />
-          </div>
+                    {/* De */}
+                    <div>
+                      <CurrencySelect label="De" value={from} onChange={setFrom} />
+                    </div>
 
-          {attributionUrl && (
-            <p className="text-xs text-gray-500 mt-2">
-              <a 
-                href={attributionUrl} 
-                target="_blank" rel="noreferrer" 
-                className="underline text-[var(--link)] hover:text-[var(--link-hover)]" >
-                Rates By Exchange Rate API
-              </a>
-            </p>
-          )}
+                    {/* Para */}
+                    <div>
+                      <CurrencySelect label="Para" value={to} onChange={setTo} />
+                    </div>
+
+                    {/* Hint do Valor — somente desktop, logo abaixo da 1ª coluna */}
+                    <p className="hidden md:block text-xs text-[var(--text-secondary)] mt-1 md:col-start-1 md:col-end-2">
+                      Máximo {MAX_INT_DIGITS} dígitos inteiros e {MAX_DEC_DIGITS} decimais
+                    </p>
+                  </div>
 
 
-          <hr className="my-6" />
-          <section className="text-sm text-gray-600 space-y-1">
-            <div>
-              <strong>Moedas:</strong> USD, EUR, BRL
-            </div>
-            <div>
-              <strong>Como funciona:</strong> Tentamos taxa dinâmica via API; se falhar, caímos no estático.
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      className="h-11 px-5 rounded-lg bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] 
+                      hover:bg-[var(--button-primary-hover)] disabled:opacity-50 focus-visible:ring-2 
+                      focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 cursor-pointer"
+                      onClick={() => { void doConvert(); }}
+                      disabled={!canConvert || loading}
+                    >
+                      {loading ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className="h-4 w-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin"
+                            aria-hidden="true"
+                          />
+                          Convertendo
+                        </span>
+                      ) : (
+                        'Converter'
+                      )}
+                    </button>
+
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={useDynamic}
+                        onChange={(e) => setUseDynamic(e.target.checked)}
+                      />
+                      Usar taxa dinâmica (API)
+                    </label>
+                  </div>
+
+                  <div className="mt-4">
+                    <ErrorBanner message={error} />
+                  </div>
+
+                  <div className="mt-3">
+                    <ResultPanel loading={loading} resultText={result} details={details} />
+                  </div>
+
+                  {attributionUrl && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      <a
+                        href={attributionUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline text-[var(--link)] hover:text-[var(--link-hover)]"
+                      >
+                        Rates By Exchange Rate API
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                <div className="card p-5">
+                  <h3 className="text-base font-semibold mb-2">Como funciona</h3>
+                  <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-2">
+                    <li>Busca taxa em <strong>3 APIs gratuitas</strong> (Frankfurter → Open ER-API → Currency-API).</li>
+                    <li>Se houver falha, usa <strong>tabela estática</strong> e informa via toast.</li>
+                    <li>Precisão com <strong>decimal.js</strong> e arredondamento bancário.</li>
+                  </ul>
+                  <div className="mt-3 text-xs text-[var(--text-secondary)]">
+                    Dica: você pode alternar entre taxa dinâmica e estática para testar os estados.
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
-        </div>
-      </main>
+
+          {/* DIFERENCIAIS */}
+          <section id="features" className="section bg-[var(--background-secondary)]">
+            <div className="container">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Diferenciais</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                Foco em qualidade do código, acessibilidade e UX.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FeatureCard
+                  icon="🛡️"
+                  title="Resiliência de rede"
+                  desc="Fallback entre múltiplas fontes e mensagens claras em caso de indisponibilidade."
+                />
+                <FeatureCard
+                  icon="📐"
+                  title="Precisão monetária"
+                  desc="Cálculos com decimal.js e ROUND_HALF_EVEN para valores financeiros."
+                />
+                <FeatureCard
+                  icon="♿"
+                  title="Acessível por padrão"
+                  desc="Rótulos, aria-live, foco visível e sequência de tab coerente."
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* FONTES */}
+          <section id="sources" className="section">
+            <div className="container">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Fontes de câmbio</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                A aplicação tentará sempre a melhor fonte disponível no momento.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="card p-4">
+                  <div className="text-sm font-medium">Frankfurter</div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Principal</p>
+                </div>
+                <div className="card p-4">
+                  <div className="text-sm font-medium">Open ER-API</div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Fallback 1</p>
+                </div>
+                <div className="card p-4">
+                  <div className="text-sm font-medium">Currency-API (CDN)</div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Fallback 2</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* FAQ */}
+          <section id="faq" className="section bg-[var(--background-secondary)]">
+            <div className="container">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Perguntas frequentes</h2>
+              <div className="grid gap-3">
+                <details className="card p-4">
+                  <summary className="font-medium cursor-pointer">O que acontece se a API cair?</summary>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2">
+                    A aplicação usa fallback para taxas estáticas e informa via toast “Tentar novamente”.
+                  </p>
+                </details>
+                <details className="card p-4">
+                  <summary className="font-medium cursor-pointer">Quais moedas são suportadas?</summary>
+                  <p className="text-sm text-[var(--text-secondary)] mt-2">
+                    USD, EUR e BRL (requisito do teste). É simples adicionar outras.
+                  </p>
+                </details>
+              </div>
+            </div>
+          </section>
+
+          {/* RODAPÉ */}
+          <footer className="section-sm">
+            <div className="container text-xs text-[var(--text-secondary)]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <span>© {new Date().getFullYear()} Conversor de Moedas</span>
+                <a
+                  href="https://github.com/carlosvale03/currency-converter"
+                  className="underline text-[var(--link)] hover:text-[var(--link-hover)]"
+                  target="_blank" rel="noreferrer"
+                >
+                  Ver repositório no GitHub →
+                </a>
+              </div>
+            </div>
+          </footer>
+        </main>
+      </>
     </ClientErrorBoundary>
   );
 }
