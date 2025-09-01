@@ -61,3 +61,20 @@ a:hover { color: var(--link-hover); }
 @keyframes skeleton-shimmer {
   100% { transform: translateX(100%); }
 }
+
+/* Skip link: visível apenas ao focar com teclado */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 2px solid var(--focus-ring);
+  padding: 8px 12px;
+  border-radius: 8px;
+  z-index: 1000;
+  transition: top .15s ease;
+}
+.skip-link:focus {
+  top: 8px;
+}
