@@ -3,6 +3,8 @@ export type Currency =
   | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF'
   | 'BTC' | 'ETH' | 'USDT';
 
+export type Rate = { value:number }
+
 export const FIAT_CURRENCIES: Currency[] = [
   'USD', 'EUR', 'BRL', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF',
 ];
