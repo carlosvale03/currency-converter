@@ -1,31 +1,30 @@
 'use client';
-import { useId } from 'react';
-import type { Currency } from '@/core/money';
-import { SUPPORTED_CURRENCIES } from '@/core/money';
+import { FIAT_CURRENCIES, CRYPTO_CURRENCIES, currencyLabel, Currency } from '@/core/money';
 
-type Props = {
-  label: string;
-  value: Currency;
-  onChange: (c: Currency) => void;
-};
-
-export default function CurrencySelect({ label, value, onChange }: Props) {
-  const id = useId();
+export default function CurrencySelect({
+  label, value, onChange,
+}: { label: string; value: Currency; onChange: (v: Currency) => void }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium">{label}</label>
+    <label className="flex flex-col gap-1">
+      <span className="text-sm">{label}</span>
       <select
-        id={id}
-        className="border rounded-lg h-11 px-3 text-base sm:text-lg outline-none 
-          border-[color:var(--border)] text-[var(--text-primary)] 
-          focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
         value={value}
         onChange={(e) => onChange(e.target.value as Currency)}
+        className="w-full border rounded-lg h-11 px-3 text-base sm:text-lg outline-none 
+                   border-[color:var(--border)] text-[var(--text-primary)]
+                   focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2"
       >
-        {SUPPORTED_CURRENCIES.map((c) => (
-          <option key={c} value={c}>{c}</option>
-        ))}
+        <optgroup label="Moedas (fiat)">
+          {FIAT_CURRENCIES.map(c => (
+            <option key={c} value={c}>{currencyLabel(c)}</option>
+          ))}
+        </optgroup>
+        <optgroup label="Criptomoedas">
+          {CRYPTO_CURRENCIES.map(c => (
+            <option key={c} value={c}>{currencyLabel(c)}</option>
+          ))}
+        </optgroup>
       </select>
-    </div>
+    </label>
   );
 }
