@@ -1,3 +1,5 @@
+![CI](https://github.com/carlosvale03/currency-converter/actions/workflows/ci.yml/badge.svg)
+
 # 💱 Conversor de Moedas — Next.js + TypeScript + Tailwind
 
 Aplicação simples para converter valores entre **USD**, **EUR** e **BRL**.
