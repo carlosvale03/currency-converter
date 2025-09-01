@@ -149,14 +149,14 @@ export default function Home() {
 
   return (
     <ClientErrorBoundary>
-      <main className="min-h-screen bg-[var(--background-primary)] text-[var(--text-primary)]">
+      <main id="content" role="main" className="min-h-screen bg-[var(--background-primary)] text-[var(--text-primary)]">
         <div className="max-w-2xl mx-auto p-6">
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Conversor de Moedas</h1>
           <p className="text-sm text-[var(--text-secondary)] mb-6">
             Suporta USD, EUR e BRL. Você pode alternar entre taxa dinâmica (API) e tabela fixa. 
           </p>
 
-          <div className="grid gap-3 items-end grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
+          <div className="grid gap-3 items-end grid-cols-1 md:grid-cols-[1fr_auto_1fr] order-1">
             <AmountInput
               amount={amount}
               onChange={handleAmountChange}
@@ -164,10 +164,10 @@ export default function Home() {
               hint={`Máximo ${MAX_INT_DIGITS} dígitos inteiros e ${MAX_DEC_DIGITS} decimais`}
               maxLength={MAX_INPUT_LENGTH}
             />
-            <div className="flex justify-center mb-2">
+            <div className="flex justify-center mb-2 order-2">
               <SwapButton onClick={swap} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 order-3">
               <CurrencySelect label="De" value={from} onChange={setFrom} />
               <CurrencySelect label="Para" value={to} onChange={setTo} />
             </div>
