@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={t.id}
             role="status"
             className={[
-              'rounded-xl shadow-lg border px-4 py-3 text-sm flex items-start gap-3 bg-white',
+              'rounded-xl shadow-lg border px-4 py-3 text-sm flex items-start gap-3 bg-[var(--surface)] border-[color:var(--border)]',
               t.type === 'success' && 'border-green-200',
               t.type === 'info' && 'border-blue-200',
               t.type === 'warning' && 'border-yellow-200',

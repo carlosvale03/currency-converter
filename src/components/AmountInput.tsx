@@ -12,11 +12,13 @@ type Props = {
 export default function AmountInput({ amount, onChange, error, hint, maxLength }: Props) {
   const id = useId();
   const helpId = `${id}-help`;
-  const base =
-    'border rounded-lg px-3 py-2 outline-none focus:ring ring-offset-1 transition';
-  const cls = error
+  const base = 
+    'border rounded-lg h-11 px-3 text-base sm:text-lg outline-none transition ' +
+    'focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 ' +
+    'text-[var(--text-primary)] placeholder:text-[color:var(--text-secondary)]';
+const cls = error
     ? `${base} border-red-500 focus:ring-red-300`
-    : `${base} border-gray-300 focus:ring-gray-300`;
+    : `${base} border-[color:var(--border)] focus:ring:var(--border)`;
 
   return (
     <div className="flex flex-col gap-1">
