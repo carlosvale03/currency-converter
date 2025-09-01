@@ -10,15 +10,14 @@ import { convert } from '@/core/convert';
 import type { Currency } from '@/core/money';
 import { StaticRateProvider } from '@/providers/static';
 import { HttpRateProvider } from '@/providers/http';
-
 import type { RateWithMeta } from '@/providers/types';
-
 import { ClientErrorBoundary } from '@/components/ClientErrorBoundary';
 import { logger } from '@/lib/logger';
-
 import { useToast } from '@/components/ToastProvider';
-
 import FeatureCard from '@/components/FeatureCard';
+
+import RateChart from '@/components/RateChart';
+import Modal from '@/components/Modal';
 
 
 import {
@@ -41,6 +40,7 @@ export default function Home() {
   const [useDynamic, setUseDynamic] = useState(true);
   const [attributionUrl, setAttributionUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const [chartOpen, setChartOpen] = useState(false);
 
   function handleAmountChange(v: string) {
     const cleaned = normalizeAmountInput(v);
@@ -195,8 +195,8 @@ export default function Home() {
           {/* CONVERSOR */}
           <section id="converter" className="section">
             <div className="container">
-              <div className="grid gap-6 md:grid-cols-2 items-start">
-                <div className="card p-5">
+              <div className="grid gap-6 md:grid-cols-2 md:items-stretch">
+                <div className="card p-5 h-full flex flex-col">
                   <h2 className="text-xl sm:text-2xl font-semibold mb-2">Conversor</h2>
                   <p className="text-sm text-[var(--text-secondary)] mb-4">
                     Informe o valor, escolha as moedas e clique em converter.
@@ -297,6 +297,28 @@ export default function Home() {
                       </a>
                     </p>
                   )}
+                </div>
+
+                {/* Ações extras */}
+                <div className="mt-3 md:hidden">
+                  <button
+                    onClick={() => setChartOpen(true)}
+                    className="h-10 px-4 rounded-lg border border-[color:var(--border)] 
+                    hover:bg-[var(--background-secondary)] focus-visible:ring-2 
+                    focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 cursor-pointer"
+                  >
+                    Ver gráfico (7d)
+                  </button>
+                </div>
+
+                <Modal open={chartOpen} onClose={() => setChartOpen(false)} title="Taxa">
+                  <RateChart from={from} to={to} days={7} />
+                </Modal>
+
+                {/* CARD: Gráfico (desktop) */}
+                <div className="hidden md:block card p-5 h-full">
+                  <h3 className="text-base font-semibold mb-2">Taxa</h3>
+                  <RateChart from={from} to={to} days={7} />
                 </div>
 
                 <div className="card p-5">
